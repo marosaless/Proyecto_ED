@@ -56,33 +56,3 @@ Cards* initializeDeck(int& numCard) {
     return head;
 }
 
-int main(){
-    int option=-1;
-    /*Node* Lista=NULL;*/
-    while (option){
-        
-        cout<<"Escoja una opcion: ";
-        cin>>option;
-        switch(option){
-            case 1: 
-                
-            break;
-            case 2:
-            
-
-            break;
-            case 3:
-
-            break;
-            default:
-            break;
-
-
-        }
-        
-
-
-    }
-
-    return 0;
-}

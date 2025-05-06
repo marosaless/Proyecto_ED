@@ -1,0 +1,32 @@
+Actualmente tenemos una funcion que crea la baraja de cartas, las barajea y las muesta.
+
+Falta:
+1) Crear la lista de jugadores (se me ocurrio que sea ciclica para facilitar algunas cosas)
+    y hacer que los usuarios le den su nombre. Ya el struct está hecho.
+
+2) Repartirle las cartas y ordenar el mazo de cada jugador segun el orden del pdf.
+
+3)Primera Ronda:
+    -Buscar al jugador que tenga el 3 de diamante para que el empieze (esto se puede hacer en el main).
+    -Hacer una lista donde se coloquen las cartas jugadas.
+    -Hacer una funcion para que el jugador escoja la/s cartas a jugar y que se inserten en la lista anterior. (aqui se deberia validar que tenga las cartas que desea jugar y que segun
+     las reglas del juego lo pueda hacer, se puede hacer en la misma funcion o en el main) y hacer que le toque al sig jugador.
+    -Funcion para los Skip (se deberia tener un contador para saber cuantas veces hacen skip y despues pasar al siguiente turno).
+    -Funcion para limpiar la lista de cartas jugadas y mandarlas a la baraja de cartas original (se activa cuando se juega un 8 o 3 skips seguidos).
+
+    -Hacer funcion que sume puntos y añada el rango a los que se vayan quedando sin cartas.
+    -Volver barajear y repartir las cartas.
+4)Hacer funcion que le quite las dos cartas mas altas de su mazo al del magnate, quitarle la carta mas alta al pobre y darsela al rico
+  y que el magnate y el rico escojan que cartas quieren dar al pobre y mendigo.
+  -hacer que inicie el mendigo y hacer lo mismo que la primera ronda.
+5) Despues de las 3 rondas mostrar el puntaje y dar un mensaje de ganador.
+6) Reglas especiales:
+    -Joker.
+    -8-stop.
+    -3 de trebol le gana a un joker solitario.
+    -Cuando se juega un poker la jerarquia se invierte.
+
+Capaz falte algo mas que se ira agregando mientras se crea el juego.
+
+Hay varias cosas que se puede hacer en el main y no se necesita una funcion especifica.
+

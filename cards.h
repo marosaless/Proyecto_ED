@@ -1,3 +1,6 @@
+#include <iostream>
+#include <string>
+#include <random>
 
 using namespace std;
 
@@ -7,13 +10,15 @@ struct Cards{
     Cards* next;
 };
 
-Cards* createCard(const string& value, const char& suit) {
+Cards* createCard(string value, char suit) {
     Cards* newCard = new Cards;
     newCard->value = value;
     newCard->suit = suit;
-    newCard->next = NULL;
+    newCard->next = nullptr;
     return newCard;
 }
+// Función para crear una nueva carta y devolver su dirección
+
 
 // Función para inicializar la baraja y devolver la cabeza de la lista enlazada
 Cards* initializeDeck(int& numCard) {
@@ -22,8 +27,8 @@ Cards* initializeDeck(int& numCard) {
     char suits[] = {char(3), char(4), char(5), char(6)};
     string values[] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
-    for (const char& suit : suits) {
-        for (const string& value : values) {
+    for (char& suit : suits) {
+        for (string& value : values) {
             Cards* newCard = createCard(value, suit);
             if (head == NULL) {
                 head = newCard;
@@ -74,12 +79,12 @@ Cards* shuffleDeck(Cards* head, int numCards) {
         return head;
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    random_device rd;
+    mt19937 gen(rd());
 
     Cards* current = head;
     for (int i = numCards - 1; i > 0; --i) {
-        std::uniform_int_distribution<> distrib(0, i);
+        uniform_int_distribution<> distrib(0, i);
         int j = distrib(gen);
 
         // Find the nodes at indices i and j
@@ -88,8 +93,8 @@ Cards* shuffleDeck(Cards* head, int numCards) {
 
         // Swap the values and suits of the nodes
         if (nodeI && nodeJ) {
-            std::swap(nodeI->value, nodeJ->value);
-            std::swap(nodeI->suit, nodeJ->suit);
+            swap(nodeI->value, nodeJ->value);
+            swap(nodeI->suit, nodeJ->suit);
         }
     }
 
@@ -98,13 +103,22 @@ Cards* shuffleDeck(Cards* head, int numCards) {
 
 void displayDeck(Cards* head, int numCards) {
     Cards* current = head;
-    while (current != nullptr) {
+    while (current != NULL) {
+        cout<<" | ";
         cout << current->value;
         if (current->suit != char(0)) {
             std::cout <<  current->suit;
         }
-        std::cout << " -> ";
+        cout << " | ";
         current = current->next;
     }
-    std::cout << "nullptr (" << numCards << " cards)" << std::endl;
+    cout << "(" << numCards << " cards)" << endl;
+}
+
+void freeDeck(Cards* head) {
+    while (head != nullptr) {
+        Cards* temp = head;
+        head = head->next;
+        delete temp;
+    }
 }

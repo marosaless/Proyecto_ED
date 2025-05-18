@@ -1,9 +1,5 @@
-#include <iostream>
-#include <string>
-#include <random>
 #include <vector>
-#include <algorithm>
-#include "list.h"
+#include "cards.h"
 
 using namespace std;
 

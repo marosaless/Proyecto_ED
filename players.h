@@ -35,10 +35,10 @@ Player* createPlayer(Player*& p, string nick, int numplay){
 }
 
 void repartirCarta(Player* player, Cards* card) {
-    card->next = NULL; 
+    card->next = nullptr; 
     Cards* aux;
 
-    if (player->deck == NULL) {
+    if (player->deck == nullptr) {
         player->deck = card;
         aux = card;
     } else {

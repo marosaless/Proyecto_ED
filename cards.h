@@ -103,7 +103,7 @@ Cards* shuffleDeck(Cards* head, int numCards) {
 
 void displayDeck(Cards* head, int numCards) {
     Cards* current = head;
-    while (current != NULL) {
+    while (current != nullptr) {
         cout<<" | ";
         cout << current->value;
         if (current->suit != char(0)) {

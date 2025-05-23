@@ -21,6 +21,11 @@ int main(){
     createPlayer(players, name2, 2);
     displayplayers(players);
     repartirMazo(myDeck, players);
-    
+    imprimirMano(players);
+    imprimirMano(players->next);
+    ordenarCartasJugadores(players);
+    cout<<"Baraja ordenada"<<endl;
+    imprimirMano(players);
+    imprimirMano(players->next);
 
 }

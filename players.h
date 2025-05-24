@@ -291,3 +291,110 @@ void ordenarCartasJugadores(Player* headplayer) {
         currentPlayer = currentPlayer->next;
     } while (currentPlayer != headplayer);
 }
+
+// Función para cambiar el puntero 'cabeza' al nodo de un jugador específico
+Player* cambiarCabezaPorNombre(Player* cabeza, string nombreBuscado) {
+    if (cabeza == nullptr) {
+        return nullptr;
+    }
+
+    Player* actual = cabeza;
+    do {
+        if (actual->nick == nombreBuscado) {
+            return actual; // Se encontró el jugador, se devuelve este nodo como la nueva cabeza
+        }
+        actual = actual->next;
+    } while (actual != cabeza); // Continúa hasta dar una vuelta completa
+}
+
+/*Pozo*/
+
+struct Pozo{
+    int value;
+    int num;
+    int suit;
+    Pozo* next;
+};
+
+void push (Pozo **P, int value){
+    Pozo* newElement = new Pozo;
+    newElement->value = value;
+    newElement->next = *P;
+    *P = newElement;
+}
+
+bool isVoid(Pozo* P){
+    if (!P) return true;
+    return false;
+}
+
+int top(Pozo* P){
+    if(!P) return 0;
+    else return P->value;
+}
+
+void vaciarPozo(Pozo** pozo) {
+    while (!isVoid(*pozo)) {
+        Pozo* temp = *pozo;
+        *pozo = (*pozo)->next;
+        delete temp; 
+    }
+    cout << "El pozo ha sido vaciado." << endl;
+} 
+
+void imprmirpozo(Pozo* pozo){
+    if (isVoid(pozo)){
+        cout << "El pozo está vacío." << endl;
+        return;
+    }
+    char suit = char(0);
+    switch (pozo->suit) {
+        case 3: suit = char(3); break; // ♣
+        case 4: suit = char(4); break; // ♦
+        case 5: suit = char(5); break; // ♥
+        case 6: suit = char(6); break; // ♠
+        default: suit = ' '; break; // Sin símbolo
+    }
+    string num;
+    switch (pozo->num){
+        case 1: num = "(single)"; break;
+        case 2: num = "(par)"; break;
+        case 3: num = "(triple)"; break;
+        case 4: num = "(poker)"; break;
+        default: num = "(desconocido)"; break;
+    }
+    cout<<" | "<< pozo->value << suit <<" | "<<endl;
+    cout<<num<<endl;
+}
+
+/*Reglas especiales*/
+
+bool tresdiamantes(Player*& headPlayer, Player*& primerJugador) {
+    if (!headPlayer) return false;
+
+    Player* actual = headPlayer;
+
+    while (actual->next != headPlayer) {
+        Cards* cartaActual = actual->deck;
+        while (cartaActual) {
+            if (cartaActual->value == "3" && cartaActual->suit == char(4)) { // ♦
+                primerJugador = actual;
+                return true;
+            }
+            cartaActual = cartaActual->next;
+        }
+        actual = actual->next;
+    }
+
+    return false; 
+}
+
+string primerJugadorConTresDiamantes(Player*& headPlayer, Player*& primerJugador) {
+    if (tresdiamantes(headPlayer, primerJugador)) {
+        string name = primerJugador->nick; 
+        return name;
+    } else {
+        cout << "Ningún jugador tiene el 3 de diamantes." << endl;
+    }
+}
+

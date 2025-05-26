@@ -8,8 +8,11 @@ using namespace std;
 int main(){
     Cards* myDeck = nullptr;
     Player* players = nullptr;
-    Player* primerjugadore = nullptr;
+    Player* actualplayer = nullptr;
+    Pozo* pozo = nullptr;
     int numCards = 0;
+    int n;
+    int cont = 0;
     string name1;
     string name2;
     string name3;
@@ -59,15 +62,76 @@ int main(){
                     int ronda = 1;
                     cout<<"Ronda "<<ronda<<endl;
                     cout<<"------------------------------------------------"<<endl;
-                    string turno = (primerJugadorConTresDiamantes(players, primerjugadore));
-                    cambiarCabezaPorNombre(players, turno);
-                    cout<<"Turno de "<<turno<<endl;
-                    cout<<"presione una tecla para continuar..."<<endl;
-                    _getch();
-                    cout<<"------------------------------------------------"<<endl;
-                    while(players->deck){
+                    
+                    while(players->mazo || players->next->mazo || players->next->next->mazo || players->next->next->next->mazo){
+
+                        string turno = (primerJugadorConTresDiamantes(players, actualplayer));
+                        cambiarCabezaPorNombre(players, turno);
+                        cout<<"Turno de "<<actualplayer->nick<<endl;
+                        cout<<"presione una tecla para continuar..."<<endl;
+                        _getch();
                         cout<<"------------------------------------------------"<<endl;
-                        
+                        imprimirpozo(pozo);
+                        cout<<"------------------------------------------------"<<endl;
+                        imprimirMano(actualplayer);
+                        cout<<endl;
+                        cout<<"------------------------------------------------"<<endl;
+                        cout<<"Ingrese 1 si desea jugar una carta"<<endl;
+                        cout<<"Ingrese 2 si desea pasar el turno"<<endl;
+                        cin>>n;
+                        switch (n)
+                        {
+                        case 1: {
+                            cout<<"ingrese el valor de la carta que desea jugar"<<endl;
+                            string value;
+                            cin>>value;
+                            int suit = 0; // Inicializar suit antes de cualquier goto, break, continue, etc.
+                            if (validatevalueindeck(actualplayer->deck, value) && validatevalueinpozo(pozo, value)){
+                                cout<<"ingrese el numero de cartas que desea jugar"<<endl;
+                                int num;
+                                cin>>num;
+                                vector<char> suits;
+                                if (validatenumindeck(actualplayer->deck, value, num) && validatenuminpozo(pozo, num)){
+                                    // Asignar el palo de la carta si es necesario
+                                    if (value == "JOKER") {
+                                        suit = 0; // Joker no tiene palo
+                                        suits.push_back(char(0)); 
+                                    } else {
+                                        for (int i = 0; i < num; i++) {
+                                            cout<<"Ingrese el palo de la carta (1: CORAZON, 2: DIAMANTE, 3: TREBOL, 4: PICAS): ";
+                                            cin>>suit;
+                                            
+                                             suits.push_back(char(suit+2));
+                                            if (suit < 1 || suit > 4) {
+                                                cout<<"Palo no valido. Intente de nuevo."<<endl;
+                                                i--; // Repetir la iteración para obtener un palo válido
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    push(&pozo, value, num, suit);
+                                    pasarCartasAlPozo(actualplayer, pozo, value, suits, num);
+                                    cout<<"Carta(s) jugada(s) correctamente"<<endl;
+                                    //imprimirpozo(pozo);
+                                    actualplayer=actualplayer->next;
+                                }
+                            } else {
+                                cout<<"No se puede jugar esa carta"<<endl;
+                            }
+                        }
+                        break;
+                        case 2:
+                            cout<<"Turno pasado"<<endl;
+                            actualplayer = actualplayer->next;
+                            cont++;
+                            if(cont == 3) {
+                                vaciarPozo(&pozo);
+                                cont = 0;
+                            }
+                            break;
+                        default:
+                            break;
+                        }
                     }
                     break;
                 }

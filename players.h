@@ -45,7 +45,7 @@ Cards* initializeDeck(int& numCard) {
     }
 
     // Agregar los jokers
-    Cards* joker1 = createCard("Joker", char(0));
+    Cards* joker1 = createCard("JOKER", char(0));
     if (head == nullptr) {
         head = joker1;
         tail = joker1;
@@ -55,11 +55,11 @@ Cards* initializeDeck(int& numCard) {
     }
     numCard++;
 
-    Cards* joker2 = createCard("Joker", char(0));
+    Cards* joker2 = createCard("JOKER", char(0));
     if (head == nullptr) {
         head = joker2;
         tail = joker2;
-    } else {
+    } else {    
         tail->next = joker2;
         tail = joker2;
     }
@@ -133,6 +133,7 @@ struct Player{
     string role;
     int points;
     int numplay;
+    bool mazo = true;
     Cards* deck = nullptr;
     Player* next;
 
@@ -210,7 +211,7 @@ void imprimirMano(Player* jugador) {
         cout << " | ";
         current = current->next;
     }
-    cout <<"mano imprimida"<< endl;
+    
 }
 
 void displayplayers(Player* head) {
@@ -230,7 +231,7 @@ void displayplayers(Player* head) {
 }
 
 int getCardPriority(const string& value) {
-    if (value == "Joker") return 15; // Joker siempre al final
+    if (value == "JOKER") return 15; // Joker siempre al final
     if (value == "2") return 14;    // 2 tiene la máxima prioridad
     if (value == "A") return 13;    // As
     if (value == "K") return 12;    // Rey
@@ -310,15 +311,18 @@ Player* cambiarCabezaPorNombre(Player* cabeza, string nombreBuscado) {
 /*Pozo*/
 
 struct Pozo{
-    int value;
+    string value;
     int num;
     int suit;
+    Cards* deck = nullptr; 
     Pozo* next;
 };
 
-void push (Pozo **P, int value){
+void push (Pozo **P, string value, int num, int suit) {
     Pozo* newElement = new Pozo;
     newElement->value = value;
+    newElement->num = num;
+    newElement->suit = suit;
     newElement->next = *P;
     *P = newElement;
 }
@@ -328,7 +332,7 @@ bool isVoid(Pozo* P){
     return false;
 }
 
-int top(Pozo* P){
+string top(Pozo* P){
     if(!P) return 0;
     else return P->value;
 }
@@ -342,18 +346,10 @@ void vaciarPozo(Pozo** pozo) {
     cout << "El pozo ha sido vaciado." << endl;
 } 
 
-void imprmirpozo(Pozo* pozo){
+void imprimirpozo(Pozo* pozo){
     if (isVoid(pozo)){
-        cout << "El pozo está vacío." << endl;
+        cout << "El pozo esta vacio." << endl;
         return;
-    }
-    char suit = char(0);
-    switch (pozo->suit) {
-        case 3: suit = char(3); break; // ♣
-        case 4: suit = char(4); break; // ♦
-        case 5: suit = char(5); break; // ♥
-        case 6: suit = char(6); break; // ♠
-        default: suit = ' '; break; // Sin símbolo
     }
     string num;
     switch (pozo->num){
@@ -363,8 +359,67 @@ void imprmirpozo(Pozo* pozo){
         case 4: num = "(poker)"; break;
         default: num = "(desconocido)"; break;
     }
-    cout<<" | "<< pozo->value << suit <<" | "<<endl;
+    Cards* current = pozo->deck;
+    while(current != nullptr) {
+        cout<<" | ";
+        cout << current->value;
+        if (current->suit != char(0)) {
+            cout <<  current->suit;
+        }
+        cout << " | ";
+        current = current->next;
+    }
     cout<<num<<endl;
+}
+
+void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, const std::vector<char>& suits, int cantidad) {
+    if (!jugador || !pozo || cantidad <= 0 || suits.size() != cantidad) return;
+
+    if (value == "JOKER") {
+        // Mover los primeros 'cantidad' jokers encontrados
+        for (int i = 0; i < cantidad; ++i) {
+            Cards** pp = &jugador->deck;
+            bool encontrada = false;
+            while (*pp) {
+                Cards* actual = *pp;
+                if (actual->value == "JOKER" && actual->suit == char(0)) {
+                    *pp = actual->next;
+                    actual->next = pozo->deck;
+                    pozo->deck = actual;
+                    encontrada = true;
+                    break;
+                } else {
+                    pp = &((*pp)->next);
+                }
+            }
+            if (!encontrada) {
+                cout << "No se encontró un JOKER en la mano del jugador." << endl;
+            }
+        }
+    } else {
+        // Mismo comportamiento que antes para otras cartas
+        if (suits.size() != cantidad) return;
+        for (int i = 0; i < cantidad; ++i) {
+            char suit = suits[i];
+            Cards** pp = &jugador->deck;
+            bool encontrada = false;
+            while (*pp) {
+                Cards* actual = *pp;
+                if (actual->value == value && actual->suit == suit) {
+                    *pp = actual->next;
+                    actual->next = pozo->deck;
+                    pozo->deck = actual;
+                    encontrada = true;
+                    break;
+                } else {
+                    pp = &((*pp)->next);
+                }
+            }
+            if (!encontrada) {
+                cout << "No se encontró la carta " << value << suit << " en la mano del jugador." << endl;
+            }
+        }
+    }
 }
 
 /*Reglas especiales*/
@@ -393,8 +448,59 @@ string primerJugadorConTresDiamantes(Player*& headPlayer, Player*& primerJugador
     if (tresdiamantes(headPlayer, primerJugador)) {
         string name = primerJugador->nick; 
         return name;
-    } else {
-        cout << "Ningún jugador tiene el 3 de diamantes." << endl;
     }
 }
 
+bool validatevalueindeck(Cards* deck, string value) {
+    string n = value;
+    Cards* current = deck;
+    while (current != nullptr) {
+        if (current->value == n) {
+            return true; // La carta está en la mano
+        }
+        current = current->next;
+    }
+
+    return false; // La carta no está en la mano
+
+}
+
+bool validatevalueinpozo(Pozo* pozo, string value) {
+    if (pozo == nullptr) {
+        return true; // El pozo está vacío
+    }
+    string n = value;
+    Pozo* current = pozo;
+    if (getCardPriority(current->value) < getCardPriority(n)) {
+        return true; 
+    }
+    return false; 
+}
+
+bool validatenumindeck(Cards* deck, string value, int num) {
+    Cards* current = deck;
+    int count = 0;
+    string n = value;
+    transform(n.begin(), n.end(), n.begin(), ::toupper);
+    while (current != nullptr) {
+        if (current->value == n) {
+            count++;
+        }
+        current = current->next;
+    }
+    return count >= num; // Devuelve true si hay al menos 'num' cartas del valor especificado
+}
+
+bool validatenuminpozo(Pozo* pozo, int num) {
+    if (pozo == nullptr) {
+        return true; // El pozo está vacío
+    }
+    Pozo* current = pozo;
+    if (current->num == 1){
+        return true;
+    }
+    else if(current->num == num) {
+        return true; // El número de cartas en el pozo coincide con 'num'
+    }
+    return false; // El número de cartas en el pozo no coincide con 'num'
+}

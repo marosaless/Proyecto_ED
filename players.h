@@ -308,6 +308,33 @@ Player* cambiarCabezaPorNombre(Player* cabeza, string nombreBuscado) {
     } while (actual != cabeza); // Continúa hasta dar una vuelta completa
 }
 
+void vaciarMazosJugadores(Player* head) {
+    if (!head) return;
+    Player* actual = head;
+    do {
+        // Liberar todas las cartas del mazo del jugador actual
+        while (actual->deck != nullptr) {
+            Cards* temp = actual->deck;
+            actual->deck = actual->deck->next;
+            delete temp;
+        }
+        actual->deck = nullptr;
+        actual = actual->next;
+    } while (actual != head);
+}
+
+Player* getPlayerByRole(Player* head, string role){
+    if (!head) return nullptr;
+    Player* actual = head;
+    do {
+        if (actual->role == role) {
+            return actual;
+        }
+        actual = actual->next;
+    } while (actual != head);
+    return head; // Si no se encuentra, retorna la cabeza original
+}
+
 /*Pozo*/
 
 struct Pozo{
@@ -503,4 +530,223 @@ bool validatenuminpozo(Pozo* pozo, int num) {
         return true; // El número de cartas en el pozo coincide con 'num'
     }
     return false; // El número de cartas en el pozo no coincide con 'num'
+}
+
+void asignarRolesYPuntos(vector<Player*>& ordenSalida){
+    if (ordenSalida.size() != 4) return;
+    ordenSalida[0]->role = "Magnate";
+    ordenSalida[0]->points += 30;
+    ordenSalida[1]->role = "Rico";
+    ordenSalida[1]->points += 20;
+    ordenSalida[2]->role = "Pobre";
+    ordenSalida[2]->points += 10;
+    ordenSalida[3]->role = "Mendigo";
+}
+
+void asignarRolesYPuntosEspecial(vector<Player*>& ordenSalida, Player* jugadores) {
+    if (ordenSalida.size() != 4) return;
+
+    // Buscar al magnate anterior
+    Player* magnateAnterior = nullptr;
+    Player* temp = jugadores;
+    do {
+        if (temp->role == "Magnate") {
+            magnateAnterior = temp;
+            break;
+        }
+        temp = temp->next;
+    } while (temp != jugadores);
+
+    // Si el primero en salir NO es el magnate anterior
+    if (magnateAnterior && ordenSalida[0] != magnateAnterior) {
+        // El magnate anterior pasa a ser mendigo y no suma puntos
+        magnateAnterior->role = "Mendigo";
+        // El primero en salir es el nuevo magnate
+        ordenSalida[0]->role = "Magnate";
+        ordenSalida[0]->points += 30;
+        ordenSalida[1]->role = "Rico";
+        ordenSalida[1]->points += 20;
+        ordenSalida[2]->role = "Pobre";
+        ordenSalida[2]->points += 10;
+        // El magnate anterior ya fue marcado como mendigo, no suma puntos
+        // El cuarto jugador (ordenSalida[3]) recibe el rol que le corresponde si no es el magnate anterior
+        if (ordenSalida[3] != magnateAnterior) {
+            ordenSalida[3]->role = "Mendigo";
+            // No suma puntos
+        }
+    } else {
+        // Reparto normal
+        ordenSalida[0]->role = "Magnate";
+        ordenSalida[0]->points += 30;
+        ordenSalida[1]->role = "Rico";
+        ordenSalida[1]->points += 20;
+        ordenSalida[2]->role = "Pobre";
+        ordenSalida[2]->points += 10;
+        ordenSalida[3]->role = "Mendigo";
+        // No suma puntos
+    }
+}
+
+Cards* seleccionarCartas(Cards*& deck, int cantidad) {
+    if (!deck) return nullptr;
+
+    Cards* seleccionadas = nullptr;
+    
+    for (int i = 0; i < cantidad; i++) {
+        string valor;
+        char suit;
+        cout << "Ingresa el valor y el palo de la carta que quieres seleccionar (Ejemplo: 3 ♦): ";
+        cin >> valor >> suit;
+
+        // Buscar y eliminar la carta de la mano del jugador
+        Cards* actual = deck;
+        Cards* anterior = nullptr;
+
+        while (actual) {
+            if (actual->value == valor && actual->suit == suit) { 
+                if (anterior) {
+                    anterior->next = actual->next;
+                } else {
+                    deck = actual->next;
+                }
+
+                // Agregar la carta seleccionada a la nueva lista
+                actual->next = seleccionadas;
+                seleccionadas = actual;
+
+                cout << "Carta " << valor << suit << " seleccionada." << endl;
+                break;
+            }
+            anterior = actual;
+            actual = actual->next;
+        }
+    }
+    return seleccionadas;
+}
+
+
+Cards* obtenerCartasMasAltas(Cards*& deck, int cantidad) {
+    if (!deck) return nullptr;
+
+    Cards* seleccionadas = nullptr;
+    
+    for (int i = 0; i < cantidad; i++) {
+        Cards* cartaMasAlta = deck;
+        Cards* actual = deck;
+        Cards* anterior = nullptr;
+        Cards* anteriorMasAlta = nullptr;
+
+        // Buscar la carta de mayor jerarquía
+        while (actual) {
+            if (getCardPriority(actual->value) > getCardPriority(cartaMasAlta->value)) {
+                cartaMasAlta = actual;
+                anteriorMasAlta = anterior;
+            }
+            anterior = actual;
+            actual = actual->next;
+        }
+
+        // Eliminar la carta de la mano y agregarla a la nueva lista
+        if (cartaMasAlta) {
+            if (anteriorMasAlta) {
+                anteriorMasAlta->next = cartaMasAlta->next;
+            } else {
+                deck = cartaMasAlta->next;
+            }
+            cartaMasAlta->next = seleccionadas;
+            seleccionadas = cartaMasAlta;
+        }
+    }
+    return seleccionadas;
+}
+
+
+void eliminarCarta(Cards*& deck, string valor, char suit) {
+    if (!deck) return;
+
+    Cards* actual = deck;
+    Cards* anterior = nullptr;
+
+    while (actual) {
+        if (actual->value == valor && actual->suit == suit) {
+            if (anterior) {
+                anterior->next = actual->next;
+            } else {
+                deck = actual->next;
+            }
+            delete actual;
+            return;
+        }
+        anterior = actual;
+        actual = actual->next;
+    }
+}
+
+
+void insertar(Cards*& deck, string value, char suit) {
+    Cards* nuevaCarta = new Cards;
+    nuevaCarta->value = value;
+    nuevaCarta->suit = suit;
+    nuevaCarta->next = deck;
+    deck = nuevaCarta;
+}
+
+
+void intercambiarCartasMagnateMendigo(Player* magnate, Player* mendigo) {
+    if (!magnate || !mendigo) {
+        cout << "Error: Jugadores no válidos." << endl;
+        return;
+    }
+
+    cout << magnate->nick << " (Magnate), selecciona dos cartas para dar al Mendigo:" << endl;
+    Cards* seleccionadasMagnate = seleccionarCartas(magnate->deck, 2);
+
+    while (seleccionadasMagnate) {
+        insertar(mendigo->deck, seleccionadasMagnate->value, seleccionadasMagnate->suit);
+        Cards* temp = seleccionadasMagnate;
+        seleccionadasMagnate = seleccionadasMagnate->next;
+        delete temp;
+    }
+
+    cout << mendigo->nick << " (Mendigo), cede sus dos cartas de mayor jerarquía al Magnate:" << endl;
+    Cards* cartasMendigo = obtenerCartasMasAltas(mendigo->deck, 2);
+
+    while (cartasMendigo) {
+        insertar(magnate->deck, cartasMendigo->value, cartasMendigo->suit);
+        Cards* temp = cartasMendigo;
+        cartasMendigo = cartasMendigo->next;
+        delete temp;
+    }
+
+    cout << "Intercambio completo entre " << magnate->nick << " (Magnate) y " << mendigo->nick << " (Mendigo)." << endl;
+}
+
+
+void intercambiarCartasRicoPobre(Player* rico, Player* pobre) {
+    if (!rico || !pobre) {
+        cout << "Error: Jugadores no válidos." << endl;
+        return;
+    }
+
+    cout << rico->nick << " (Rico), selecciona una carta para dar al Pobre:" << endl;
+    Cards* seleccionadasRico = seleccionarCartas(rico->deck, 1);
+
+    while (seleccionadasRico) {
+        insertar(pobre->deck, seleccionadasRico->value, seleccionadasRico->suit);
+        Cards* temp = seleccionadasRico;
+        seleccionadasRico = seleccionadasRico->next;
+        delete temp;
+    }
+
+    cout << pobre->nick << " (Pobre), cede su carta de mayor jerarquía al Rico:" << endl;
+    Cards* cartasPobre = obtenerCartasMasAltas(pobre->deck, 1);
+
+    while (cartasPobre) {
+        insertar(rico->deck, cartasPobre->value, cartasPobre->suit);
+        Cards* temp = cartasPobre;
+        cartasPobre = cartasPobre->next;
+        delete temp;
+    }
+
+    cout << "Intercambio completo entre " << rico->nick << " (Rico) y " << pobre->nick << " (Pobre)." << endl;
 }

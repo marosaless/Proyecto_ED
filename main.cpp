@@ -32,6 +32,7 @@ int main(){
         cout<<endl;
         cout<<"Presiona cualquier tecla para continuar..."<<endl;
         _getch();
+        system("cls");
         cout<<"------------------------------------------------"<<endl;
         cout<<"             BIENVENIDO A MAGNATE               "<<endl;
         cout<<"------------------------------------------------"<<endl;
@@ -81,6 +82,7 @@ int main(){
                         cout<<"Turno de "<<actualplayer->nick<<endl;
                         cout<<"presione una tecla para continuar..."<<endl;
                         _getch();
+                        system("cls");
                         cout<<"------------------------------------------------"<<endl;
                         imprimirpozo(pozo);
                         cout<<"------------------------------------------------"<<endl;
@@ -187,6 +189,7 @@ int main(){
                     cout<<"             FIN DE LA RONDA                    "<<endl;
                     cout<<"------------------------------------------------"<<endl;
                     _getch();
+                    system("cls");
                     setInvertirJerarquia(false); // Reiniciar la jerarquía de las cartas
                     vaciarMazosJugadores(players);
                     vaciarPozo(&pozo);
@@ -212,6 +215,7 @@ int main(){
                         cout<<"No se han asignado roles correctamente."<<endl;
                     }
                     _getch();
+                    system("cls");
                     cout<<"------------------------------------------------"<<endl;
                     cout<<"             INTERCAMBIO DE CARTAS               "<<endl;
                     cout<<"------------------------------------------------"<<endl;
@@ -231,6 +235,7 @@ int main(){
                         cout<<"turno de "<<actualplayer->nick<<endl;
                         cout<<"presione una tecla para continuar..."<<endl;
                         _getch();
+                        system("cls");
                         cout<<"------------------------------------------------"<<endl;
                         imprimirpozo(pozo);
                         cout<<"------------------------------------------------"<<endl;
@@ -327,6 +332,7 @@ int main(){
                     cout<<"             FIN DE LA RONDA                    "<<endl;
                     cout<<"------------------------------------------------"<<endl;
                     _getch();
+                    system("cls");
                     setInvertirJerarquia(false); // Reiniciar la jerarquía de las cartas
                     vaciarMazosJugadores(players);
                     vaciarPozo(&pozo);
@@ -366,6 +372,7 @@ int main(){
                         cout<<"turno de "<<actualplayer->nick<<endl;
                         cout<<"presione una tecla para continuar..."<<endl;
                         _getch();
+                        system("cls");
                         cout<<"------------------------------------------------"<<endl;
                         imprimirpozo(pozo);
                         cout<<"------------------------------------------------"<<endl;

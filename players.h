@@ -67,41 +67,31 @@ Cards* initializeDeck(int& numCard) {
 
     return head;
 }
-Cards* getNodeAtIndex(Cards* head, int index) {
+
+Cards* shuffleDeck(Cards* head) {
+    if (!head || !head->next) return head;
+
+    // 1. Copiar las cartas a un vector
+    vector<Cards*> cartas;
     Cards* current = head;
-    int count = 0;
-    while (current != nullptr && count < index) {
+    while (current) {
+        cartas.push_back(current);
         current = current->next;
-        count++;
-    }
-    return current;
-}
-
-Cards* shuffleDeck(Cards* head, int numCards) {
-    if (numCards <= 1 || head == nullptr) {
-        return head;
     }
 
-    random_device rd;
-    mt19937 gen(rd());
+    // 2. Barajar el vector
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(cartas.begin(), cartas.end(), g);
 
-    Cards* current = head;
-    for (int i = numCards - 1; i > 0; --i) {
-        uniform_int_distribution<> distrib(0, i);
-        int j = distrib(gen);
-
-        // Find the nodes at indices i and j
-        Cards* nodeI = getNodeAtIndex(head, i);
-        Cards* nodeJ = getNodeAtIndex(head, j);
-
-        // Swap the values and suits of the nodes
-        if (nodeI && nodeJ) {
-            swap(nodeI->value, nodeJ->value);
-            swap(nodeI->suit, nodeJ->suit);
-        }
+    // 3. Reconstruir la lista enlazada
+    for (size_t i = 0; i < cartas.size() - 1; ++i) {
+        cartas[i]->next = cartas[i + 1];
     }
+    cartas.back()->next = nullptr;
 
-    return head;
+    // 4. Retornar la nueva cabeza
+    return cartas[0];
 }
 
 void displayDeck(Cards* head, int numCards) {
@@ -238,12 +228,12 @@ void setInvertirJerarquia(bool valor) {
 
 int getCardPriority(string value) {
     if(!invertirirjerarquia){
-        if (value == "JOKER") return 15; // Joker siempre al final
-        if (value == "2") return 14;    // 2 tiene la máxima prioridad
-        if (value == "A") return 13;    // As
-        if (value == "K") return 12;    // Rey
-        if (value == "Q") return 11;    // Reina
-        if (value == "J") return 10;    // Jota
+        if (value == "JOKER") return 16; // Joker siempre al final
+        if (value == "2") return 15;    // 2 tiene la máxima prioridad
+        if (value == "A") return 14;    // As
+        if (value == "K") return 13;    // Rey
+        if (value == "Q") return 12;    // Reina
+        if (value == "J") return 11;    // Jota
         return stoi(value);             // Para valores numéricos (3-10)
     }
     else {
@@ -253,7 +243,7 @@ int getCardPriority(string value) {
         if (value == "K") return 3;    // Rey
         if (value == "Q") return 4;    // Reina
         if (value == "J") return 5;    // Jota
-        return stoi(value) + 5;        // Para valores numéricos (3-10)
+        return stoi(value) + 6;        // Para valores numéricos (3-10)
     }
 }
 
@@ -418,12 +408,14 @@ void imprimirpozo(Pozo* pozo){
     cout<<num<<endl;
 }
 
-void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, vector<char> suits, int cantidad) {
+void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, const std::vector<char>& suits, int cantidad) {
     if (!jugador || !pozo || cantidad <= 0 || suits.size() != cantidad) return;
 
     int cartasColocadas = 0;
+    std::vector<Cards*> cartasNormales;
+    std::vector<Cards*> jokers;
 
-    // 1. Mover cartas del valor y palo indicados
+    // 1. Buscar cartas normales (valor y palo)
     for (int i = 0; i < suits.size(); ++i) {
         char suit = suits[i];
         Cards** pp = &jugador->deck;
@@ -431,43 +423,50 @@ void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, vector<
         while (*pp) {
             Cards* actual = *pp;
             if (actual->value == value && actual->suit == suit) {
+                // Quitar de la mano
                 *pp = actual->next;
-                actual->next = pozo->deck;
-                pozo->deck = actual;
+                actual->next = nullptr;
+                cartasNormales.push_back(actual);
                 encontrada = true;
-                cartasColocadas++;
+                break;
+            } else {
+                pp = &((*pp)->next);
+            }
+        }
+    }
+
+    // 2. Si faltan cartas, buscar jokers
+    int faltan = cantidad - cartasNormales.size();
+    for (int i = 0; i < faltan; ++i) {
+        Cards** pp = &jugador->deck;
+        bool encontrada = false;
+        while (*pp) {
+            Cards* actual = *pp;
+            if (actual->value == "JOKER" && actual->suit == char(0)) {
+                *pp = actual->next;
+                actual->next = nullptr;
+                jokers.push_back(actual);
+                encontrada = true;
                 break;
             } else {
                 pp = &((*pp)->next);
             }
         }
         if (!encontrada) {
-            // No se encontró la carta de ese palo, se intentará con un joker después
-            continue;
+            cout << "No se encontró un JOKER para completar la jugada." << endl;
         }
     }
 
-    // 2. Si faltan cartas, usa jokers como comodines
-    int faltan = cantidad - cartasColocadas;
-    for (int i = 0; i < faltan; ++i) {
-        Cards** pp = &jugador->deck;
-        bool jokerEncontrado = false;
-        while (*pp) {
-            Cards* actual = *pp;
-            if (actual->value == "JOKER" && actual->suit == char(0)) {
-                *pp = actual->next;
-                actual->next = pozo->deck;
-                pozo->deck = actual;
-                jokerEncontrado = true;
-                cartasColocadas++;
-                break;
-            } else {
-                pp = &((*pp)->next);
-            }
-        }
-        if (!jokerEncontrado) {
-            cout << "No se encontró un JOKER para completar la jugada." << endl;
-        }
+    // 3. Poner todas las cartas en el pozo
+    for (Cards* c : cartasNormales) {
+        c->next = pozo->deck;
+        pozo->deck = c;
+        cartasColocadas++;
+    }
+    for (Cards* c : jokers) {
+        c->next = pozo->deck;
+        pozo->deck = c;
+        cartasColocadas++;
     }
 
     if (cartasColocadas < cantidad) {

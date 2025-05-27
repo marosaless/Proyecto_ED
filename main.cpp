@@ -21,10 +21,17 @@ int main(){
     string name4;
     int option = -1;
     myDeck = initializeDeck(numCards);
-    myDeck = shuffleDeck(myDeck, numCards);
+    myDeck = shuffleDeck(myDeck);
     
     //displayDeck(myDeck, numCards);
     while (option){
+        cout<<"UCAB elaborado por: "<<endl;
+        cout<<"-Manuel Rosales."<<endl;
+        cout<<"-Aaron Zarraga."<<endl;
+        cout<<"-Anthony Da Silva."<<endl;
+        cout<<endl;
+        cout<<"Presiona cualquier tecla para continuar..."<<endl;
+        _getch();
         cout<<"------------------------------------------------"<<endl;
         cout<<"             BIENVENIDO A MAGNATE               "<<endl;
         cout<<"------------------------------------------------"<<endl;
@@ -60,16 +67,17 @@ int main(){
                 while(option){
                     cout<<"------------------------------------------------"<<endl;
                     cout<<"                    RONDA 1                     "<<endl;
-                    cout<<"------------------------------------------------"<<endl; 
-                    actualplayer = players;
+                    cout<<"------------------------------------------------"<<endl;
+                    string turno = (primerJugadorConTresDiamantes(players, actualplayer));
+                    cambiarCabezaPorNombre(players, turno); 
+                    
                     while(actualplayer->mazo && actualplayer->next->mazo && actualplayer->next->next->mazo && actualplayer->next->next->next->mazo){
                         if (actualplayer->deck == nullptr && actualplayer->mazo) {
                             ordenSalida.push_back(actualplayer);
                             actualplayer->mazo = false;
                             actualplayer = actualplayer->next;
                         }  
-                        string turno = (primerJugadorConTresDiamantes(players, actualplayer));
-                        cambiarCabezaPorNombre(players, turno);
+                        
                         cout<<"Turno de "<<actualplayer->nick<<endl;
                         cout<<"presione una tecla para continuar..."<<endl;
                         _getch();
@@ -89,7 +97,7 @@ int main(){
                             string value;
                             cin>>value;
                             int suit = 0; // Inicializar suit antes de cualquier goto, break, continue, etc.
-                            int num;
+                            int num = 0;
                             if (validatevalueindeck(actualplayer->deck, value) && validatevalueinpozo(pozo, value, num)){
                                 cout<<"ingrese el numero de cartas que desea jugar"<<endl;                               
                                 cin>>num;
@@ -107,7 +115,7 @@ int main(){
                                     if (value == "JOKER") {
                                         suit = 0; // Joker no tiene palo
                                         suits.push_back(char(0)); 
-                                    } else {
+                                    } else if (value != "JOKER") {  
                                         for (int i = 0; i < num; i++) {
                                             cout<<"Ingrese el palo de la carta (1: CORAZON, 2: DIAMANTE, 3: TREBOL, 4: PICAS): ";
                                             cin>>suit;
@@ -124,12 +132,18 @@ int main(){
                                         cout<<"------------------------------------------------"<<endl;
                                         cout<<"                     8-STOP"<<endl;
                                         cout<<"------------------------------------------------"<<endl;
+                                        push(&pozo, value, num, suit);
+                                        pasarCartasAlPozo(actualplayer, pozo, value, suits, num);
                                         vaciarPozo(&pozo);
-                                    }
-                                    else actualplayer=actualplayer->next;
-                                    push(&pozo, value, num, suit);
-                                    pasarCartasAlPozo(actualplayer, pozo, value, suits, num);
-                                    cout<<"Carta(s) jugada(s) correctamente"<<endl;
+                                        cont=0;
+                                    } else{
+                                        push(&pozo, value, num, suit);
+                                        pasarCartasAlPozo(actualplayer, pozo, value, suits, num);
+                                        cout<<"Carta(s) jugada(s) correctamente"<<endl;
+                                        actualplayer=actualplayer->next;
+                                        cont=0;
+                                    }                                   
+                                    
                                     
                                 }
                             } else {
@@ -179,7 +193,7 @@ int main(){
                     freeDeck(myDeck);
                     ordenSalida.clear();
                     myDeck = initializeDeck(numCards);
-                    myDeck = shuffleDeck(myDeck, numCards);
+                    myDeck = shuffleDeck(myDeck);
                     repartirMazo(myDeck, players);
                     ordenarCartasJugadores(players);
                     Player* Magnate = getPlayerByRole(players, "Magnate");
@@ -319,7 +333,7 @@ int main(){
                     freeDeck(myDeck);
                     ordenSalida.clear();
                     myDeck = initializeDeck(numCards);
-                    myDeck = shuffleDeck(myDeck, numCards);
+                    myDeck = shuffleDeck(myDeck);
                     repartirMazo(myDeck, players);
                     ordenarCartasJugadores(players);
                     if (Magnate && Rico && Pobre && Mendigo) {
@@ -454,7 +468,7 @@ int main(){
                     freeDeck(myDeck);
                     ordenSalida.clear();
                     myDeck = initializeDeck(numCards);
-                    myDeck = shuffleDeck(myDeck, numCards);
+                    myDeck = shuffleDeck(myDeck);
                     repartirMazo(myDeck, players);
                     ordenarCartasJugadores(players);
                     if (Magnate && Rico && Pobre && Mendigo) {

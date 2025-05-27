@@ -230,18 +230,37 @@ void displayplayers(Player* head) {
     cout<<endl;
 }
 
-int getCardPriority(const string& value) {
-    if (value == "JOKER") return 15; // Joker siempre al final
-    if (value == "2") return 14;    // 2 tiene la máxima prioridad
-    if (value == "A") return 13;    // As
-    if (value == "K") return 12;    // Rey
-    if (value == "Q") return 11;    // Reina
-    if (value == "J") return 10;    // Jota
-    return stoi(value);             // Para valores numéricos (3-10)
+bool invertirirjerarquia = false; // Variable global para controlar la jerarquía de las cartas
+
+void setInvertirJerarquia(bool valor) {
+    invertirirjerarquia = valor; // Cambia el estado de la variable global
 }
 
+int getCardPriority(string value) {
+    if(!invertirirjerarquia){
+        if (value == "JOKER") return 15; // Joker siempre al final
+        if (value == "2") return 14;    // 2 tiene la máxima prioridad
+        if (value == "A") return 13;    // As
+        if (value == "K") return 12;    // Rey
+        if (value == "Q") return 11;    // Reina
+        if (value == "J") return 10;    // Jota
+        return stoi(value);             // Para valores numéricos (3-10)
+    }
+    else {
+        if (value == "JOKER") return 0; // Joker siempre al final
+        if (value == "2") return 1;    // 2 tiene la máxima prioridad
+        if (value == "A") return 2;    // As
+        if (value == "K") return 3;    // Rey
+        if (value == "Q") return 4;    // Reina
+        if (value == "J") return 5;    // Jota
+        return stoi(value) + 5;        // Para valores numéricos (3-10)
+    }
+}
+
+
+
 // Función para insertar un nuevo nodo al final de la lista
-void insertEnd(Cards** head, int data, char suit) {
+/*void insertEnd(Cards** head, int data, char suit) {
     Cards* newCard = new Cards; // Crea un nuevo nodo
 
     if (*head == nullptr) { // Si la lista está vacía, el nuevo nodo es la cabeza
@@ -255,7 +274,7 @@ void insertEnd(Cards** head, int data, char suit) {
         temp = temp->next;
     }
     temp->next = newCard;
-}
+}*/
 
 void ordenarMano(Cards*& deck) {
     if (!deck || !deck->next) return; // Si la lista está vacía o tiene un solo elemento, no hay nada que ordenar
@@ -399,53 +418,60 @@ void imprimirpozo(Pozo* pozo){
     cout<<num<<endl;
 }
 
-void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, const std::vector<char>& suits, int cantidad) {
+void pasarCartasAlPozo(Player* jugador, Pozo* pozo, const string& value, vector<char> suits, int cantidad) {
     if (!jugador || !pozo || cantidad <= 0 || suits.size() != cantidad) return;
 
-    if (value == "JOKER") {
-        // Mover los primeros 'cantidad' jokers encontrados
-        for (int i = 0; i < cantidad; ++i) {
-            Cards** pp = &jugador->deck;
-            bool encontrada = false;
-            while (*pp) {
-                Cards* actual = *pp;
-                if (actual->value == "JOKER" && actual->suit == char(0)) {
-                    *pp = actual->next;
-                    actual->next = pozo->deck;
-                    pozo->deck = actual;
-                    encontrada = true;
-                    break;
-                } else {
-                    pp = &((*pp)->next);
-                }
-            }
-            if (!encontrada) {
-                cout << "No se encontró un JOKER en la mano del jugador." << endl;
-            }
-        }
-    } else {
-        // Mismo comportamiento que antes para otras cartas
-        if (suits.size() != cantidad) return;
-        for (int i = 0; i < cantidad; ++i) {
-            char suit = suits[i];
-            Cards** pp = &jugador->deck;
-            bool encontrada = false;
-            while (*pp) {
-                Cards* actual = *pp;
-                if (actual->value == value && actual->suit == suit) {
-                    *pp = actual->next;
-                    actual->next = pozo->deck;
-                    pozo->deck = actual;
-                    encontrada = true;
-                    break;
-                } else {
-                    pp = &((*pp)->next);
-                }
-            }
-            if (!encontrada) {
-                cout << "No se encontró la carta " << value << suit << " en la mano del jugador." << endl;
+    int cartasColocadas = 0;
+
+    // 1. Mover cartas del valor y palo indicados
+    for (int i = 0; i < suits.size(); ++i) {
+        char suit = suits[i];
+        Cards** pp = &jugador->deck;
+        bool encontrada = false;
+        while (*pp) {
+            Cards* actual = *pp;
+            if (actual->value == value && actual->suit == suit) {
+                *pp = actual->next;
+                actual->next = pozo->deck;
+                pozo->deck = actual;
+                encontrada = true;
+                cartasColocadas++;
+                break;
+            } else {
+                pp = &((*pp)->next);
             }
         }
+        if (!encontrada) {
+            // No se encontró la carta de ese palo, se intentará con un joker después
+            continue;
+        }
+    }
+
+    // 2. Si faltan cartas, usa jokers como comodines
+    int faltan = cantidad - cartasColocadas;
+    for (int i = 0; i < faltan; ++i) {
+        Cards** pp = &jugador->deck;
+        bool jokerEncontrado = false;
+        while (*pp) {
+            Cards* actual = *pp;
+            if (actual->value == "JOKER" && actual->suit == char(0)) {
+                *pp = actual->next;
+                actual->next = pozo->deck;
+                pozo->deck = actual;
+                jokerEncontrado = true;
+                cartasColocadas++;
+                break;
+            } else {
+                pp = &((*pp)->next);
+            }
+        }
+        if (!jokerEncontrado) {
+            cout << "No se encontró un JOKER para completar la jugada." << endl;
+        }
+    }
+
+    if (cartasColocadas < cantidad) {
+        cout << "No se pudieron colocar todas las cartas requeridas en el pozo." << endl;
     }
 }
 
@@ -492,7 +518,7 @@ bool validatevalueindeck(Cards* deck, string value) {
 
 }
 
-bool validatevalueinpozo(Pozo* pozo, string value) {
+bool validatevalueinpozo(Pozo* pozo, string value, int num) {
     if (pozo == nullptr) {
         return true; // El pozo está vacío
     }
@@ -501,21 +527,29 @@ bool validatevalueinpozo(Pozo* pozo, string value) {
     if (getCardPriority(current->value) < getCardPriority(n)) {
         return true; 
     }
+    else if(current->value == "JOKER" && current->num == 1 && n == "3" && current->suit == char(6)) {
+        return true; // El pozo tiene un JOKER y el valor es 3♠
+    }
+    else if(current->value == n) {
+        return true; // El valor de la carta en el pozo coincide con el valor ingresado
+    }
     return false; 
 }
 
 bool validatenumindeck(Cards* deck, string value, int num) {
     Cards* current = deck;
     int count = 0;
-    string n = value;
-    transform(n.begin(), n.end(), n.begin(), ::toupper);
+    int jokers = 0;
     while (current != nullptr) {
-        if (current->value == n) {
+        if (current->value == value) {
             count++;
+        }
+        else if(current->value == "JOKER") {
+            jokers++;
         }
         current = current->next;
     }
-    return count >= num; // Devuelve true si hay al menos 'num' cartas del valor especificado
+    return (count+jokers) >= num; // Devuelve true si hay al menos 'num' cartas del valor especificado
 }
 
 bool validatenuminpozo(Pozo* pozo, int num) {
@@ -596,6 +630,8 @@ Cards* seleccionarCartas(Cards*& deck, int cantidad) {
         string valor;
         char suit;
         cout << "Ingresa el valor y el palo de la carta que quieres seleccionar (Ejemplo: 3 ♦): ";
+        cout << "Para colocar el palo, usa los siguientes caracteres mientras pulsas (alt): " << endl;
+        cout << "Corazón: ♥ (3), Diamante: ♦ (4), Trébol: ♣ (5), Pica: ♠ (6)" << endl;
         cin >> valor >> suit;
 
         // Buscar y eliminar la carta de la mano del jugador
@@ -749,4 +785,23 @@ void intercambiarCartasRicoPobre(Player* rico, Player* pobre) {
     }
 
     cout << "Intercambio completo entre " << rico->nick << " (Rico) y " << pobre->nick << " (Pobre)." << endl;
+}
+
+void mostrarRankingFinal(Player* head) {
+    if (!head) return;
+    vector<Player*> ranking;
+    Player* temp = head;
+    do {
+        ranking.push_back(temp);
+        temp = temp->next;
+    } while (temp != head);
+
+    // Ordenar de mayor a menor por puntos
+    std::sort(ranking.begin(), ranking.end(), [](Player* a, Player* b) {
+        return a->points > b->points;
+    });
+
+    for (size_t i = 0; i < ranking.size(); ++i) {
+        cout << i+1 << ". " << ranking[i]->nick << " (" << ranking[i]->role << ") - " << ranking[i]->points << " puntos" << endl;
+    }
 }
